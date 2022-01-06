@@ -166,6 +166,43 @@ public class NegativeTests {
                 .shouldHave(text("Имя и Фамилия указаные неверно. Допустимы только русские буквы, пробелы и дефисы."));
     }
 
+    @ParameterizedTest
+    @CsvSource(value = {"phoneNumberElevenDigitsWithLetter,+78989898989q",
+            "tooShortNumber,+7",
+            "numberOfTenDigits,+7898989899",
+            "numberOfTwelveDigits(tooLongNumber or MaxBoundaryTestInField),+789898989999",
+            "numberElevenDigitsWithoutPlus,78989898998",
+            "numberWithRestrictedSymbols,-78989898999",
+            "numberWithRestrictedSymbols2,-78989898_@#$",
+            "elevenDigitsPlusInTheMiddle,789898+98998",
+            "elevenDigitsPlusAtTheEnd,78989898998+",
+            "nonExistentNumberElevenDigitsAllNullsPlusAtFirst,+00000000000"})
+    public void shouldNotSendFormWithInvalidPhoneNumber(String testcase, String phone) {
+        $("[data-test-id='city'] input").setValue("Екатеринбург");
+        $("[data-test-id='date'] input").doubleClick().sendKeys(BACK_SPACE);
+        $("[data-test-id='date'] input").setValue(meetingDateNearest);
+        $("[data-test-id='name'] input").setValue("Иван Иванов");
+        $("[data-test-id='phone'] input").setValue(phone);
+        $("[data-test-id='agreement'] .checkbox__box").click();
+        $(byText("Забронировать")).click();
+        $("[data-test-id='phone'].input_invalid .input__sub")
+                .shouldBe(Condition.visible)
+                .shouldHave(text("Телефон указан неверно. Должно быть 11 цифр, например, +79012345678."));
+    }
+
+    @Test
+    public void shouldNotSendFormWithEmptyPhoneNumber() {
+        $("[data-test-id='city'] input").setValue("Москва");
+        $("[data-test-id='date'] input").doubleClick().sendKeys(BACK_SPACE);
+        $("[data-test-id='date'] input").setValue(meetingDateNearest);
+        $("[data-test-id='name'] input").setValue("Иван Иванов");
+        $("[data-test-id='agreement'] .checkbox__box").click();
+        $(byText("Забронировать")).click();
+        $("[data-test-id='phone'].input_invalid .input__sub")
+                .shouldBe(Condition.visible)
+                .shouldHave(text("Поле обязательно для заполнения"));
+    }
+
     @Test
     public void shouldNotSendFormWithBoxNotClicked() {
         $("[data-test-id='city'] input").setValue("Екатеринбург");
